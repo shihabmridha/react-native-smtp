@@ -1,4 +1,4 @@
-# react-native-smtp
+# react-native-smtp (Android Only)
 
 ## Getting started
 
@@ -36,8 +36,35 @@
 
 ## Usage
 ```javascript
-import Smtp from 'react-native-smtp';
+import EmailSender from 'react-native-smtp';
 
-// TODO: What to do with the module?
-Smtp;
+// Configuration
+EmailSender.config({
+  host: 'smtp.host.io',
+  port: '465', // Optional. Default to 465
+  username: 'username',
+  password: 'password',
+  isAuth: 'true', // Optional. Default to `true`
+  tls: 'true' // Optional. Default to `true`
+});
+
+/*
+ * Used react-native-fs module to get file path.
+ * Keep this array empty if there is no attachment.
+ */
+const attachments = [
+  RNFS.ExternalStorageDirectoryPath + '/Tracklist/file.txt',
+  RNFS.ExternalStorageDirectoryPath + '/Tracklist/file_2.txt',
+];
+
+// Now send the mail
+EmailSender.send(
+  {
+    from: 'from@email.com',
+    to: 'to@email.com',
+    subject: 'The subject',
+    body: '<h3> Cool Body </h3>';
+  },
+  attachments, // This second parameter is mandatory. You can send an empty array.
+);
 ```
