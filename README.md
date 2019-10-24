@@ -1,3 +1,5 @@
+![npm](https://img.shields.io/npm/v/react-native-smtp?label=npm)
+![npm](https://img.shields.io/npm/dm/react-native-smtp)
 # react-native-smtp (Android Only)
 
 ## Getting started
