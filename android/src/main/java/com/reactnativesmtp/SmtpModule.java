@@ -139,13 +139,15 @@ public class SmtpModule extends ReactContextBaseJavaModule {
                     message.setFrom(new InternetAddress(from));
                     message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
                     message.setSubject(subject);
-                    message.setText(body);
 
-                    // Process attachments
                     Multipart multipart = new MimeMultipart();
-                    int totalAttachmentCount = attachments.size();
+                    MimeBodyPart messageBodyPart = new MimeBodyPart();
+                    messageBodyPart.setContent(body, "text/html");
+                    multipart.addBodyPart(messageBodyPart);
 
+                    int totalAttachmentCount = attachments.size();
                     if (totalAttachmentCount > 0) {
+                        // Process attachments
                         for (int i = 0; i < totalAttachmentCount; i++) {
                             String filePath = attachments.getString(i);
                             File file = new File(filePath);
@@ -155,7 +157,7 @@ public class SmtpModule extends ReactContextBaseJavaModule {
                             }
 
                             String fileName = file.getName();
-                            MimeBodyPart messageBodyPart = new MimeBodyPart();
+                            messageBodyPart = new MimeBodyPart();
                             DataSource source = new FileDataSource(filePath);
                             messageBodyPart.setDataHandler(new DataHandler(source));
                             messageBodyPart.setFileName(fileName);
