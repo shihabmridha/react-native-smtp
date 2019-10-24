@@ -86,89 +86,92 @@ public class SmtpModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void send(ReadableMap mailData, ReadableArray attachments, Promise promise) {
-        new Thread(() -> {
-            if (username == null || password == null || host == null) {
-                promise.reject(E_CREDENTIAL_NOT_SET_ERROR, "Credential not set.");
-                return;
-            }
-
-            if (!mailData.hasKey("from")) {
-                promise.reject(E_REQUIRED_MAIL_FIELD_ERROR, "Missing required field (from).");
-                return;
-            }
-
-            if (!mailData.hasKey("to")) {
-                promise.reject(E_REQUIRED_MAIL_FIELD_ERROR, "Missing required field (to).");
-                return;
-            }
-
-            if (!mailData.hasKey("subject")) {
-                promise.reject(E_REQUIRED_MAIL_FIELD_ERROR, "Missing required field (subject).");
-                return;
-            }
-
-            if (!mailData.hasKey("body")) {
-                promise.reject(E_REQUIRED_MAIL_FIELD_ERROR, "Missing required field (body).");
-                return;
-            }
-
-            String from, to, subject, body;
-
-            from = mailData.getString("from");
-            to = mailData.getString("to");
-            subject = mailData.getString("subject");
-            body = mailData.getString("body");
-
-            Properties props = new Properties();
-            props.put("mail.smtp.auth", authEnabled);
-            props.put("mail.smtp.starttls.enable", tls);
-            props.put("mail.smtp.host", host);
-            props.put("mail.smtp.port", port);
-
-            Session session = Session.getInstance(props, new javax.mail.Authenticator() {
-                protected PasswordAuthentication getPasswordAuthentication() {
-                    return new PasswordAuthentication(username, password);
+    public void send(final ReadableMap mailData, final ReadableArray attachments, final Promise promise) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (username == null || password == null || host == null) {
+                    promise.reject(E_CREDENTIAL_NOT_SET_ERROR, "Credential not set.");
+                    return;
                 }
-            });
 
-            try {
-                Message message = new MimeMessage(session);
-                message.setFrom(new InternetAddress(from));
-                message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
-                message.setSubject(subject);
-                message.setText(body);
+                if (!mailData.hasKey("from")) {
+                    promise.reject(E_REQUIRED_MAIL_FIELD_ERROR, "Missing required field (from).");
+                    return;
+                }
 
-                // Process attachments
-                Multipart multipart = new MimeMultipart();
-                int totalAttachmentCount = attachments.size();
+                if (!mailData.hasKey("to")) {
+                    promise.reject(E_REQUIRED_MAIL_FIELD_ERROR, "Missing required field (to).");
+                    return;
+                }
 
-                if (totalAttachmentCount > 0) {
-                    for (int i = 0; i < totalAttachmentCount; i++) {
-                        String filePath = attachments.getString(i);
-                        File file = new File(filePath);
-                        if(!file.exists()) {
-                            promise.reject(E_FILE_NOT_FOUND_ERROR, "File not found.");
-                            return;
-                        }
+                if (!mailData.hasKey("subject")) {
+                    promise.reject(E_REQUIRED_MAIL_FIELD_ERROR, "Missing required field (subject).");
+                    return;
+                }
 
-                        String fileName = file.getName();
-                        MimeBodyPart messageBodyPart = new MimeBodyPart();
-                        DataSource source = new FileDataSource(filePath);
-                        messageBodyPart.setDataHandler(new DataHandler(source));
-                        messageBodyPart.setFileName(fileName);
-                        multipart.addBodyPart(messageBodyPart);
+                if (!mailData.hasKey("body")) {
+                    promise.reject(E_REQUIRED_MAIL_FIELD_ERROR, "Missing required field (body).");
+                    return;
+                }
+
+                String from, to, subject, body;
+
+                from = mailData.getString("from");
+                to = mailData.getString("to");
+                subject = mailData.getString("subject");
+                body = mailData.getString("body");
+
+                Properties props = new Properties();
+                props.put("mail.smtp.auth", authEnabled);
+                props.put("mail.smtp.starttls.enable", tls);
+                props.put("mail.smtp.host", host);
+                props.put("mail.smtp.port", port);
+
+                Session session = Session.getInstance(props, new javax.mail.Authenticator() {
+                    protected PasswordAuthentication getPasswordAuthentication() {
+                        return new PasswordAuthentication(username, password);
                     }
+                });
+
+                try {
+                    Message message = new MimeMessage(session);
+                    message.setFrom(new InternetAddress(from));
+                    message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
+                    message.setSubject(subject);
+                    message.setText(body);
+
+                    // Process attachments
+                    Multipart multipart = new MimeMultipart();
+                    int totalAttachmentCount = attachments.size();
+
+                    if (totalAttachmentCount > 0) {
+                        for (int i = 0; i < totalAttachmentCount; i++) {
+                            String filePath = attachments.getString(i);
+                            File file = new File(filePath);
+                            if (!file.exists()) {
+                                promise.reject(E_FILE_NOT_FOUND_ERROR, "File not found.");
+                                return;
+                            }
+
+                            String fileName = file.getName();
+                            MimeBodyPart messageBodyPart = new MimeBodyPart();
+                            DataSource source = new FileDataSource(filePath);
+                            messageBodyPart.setDataHandler(new DataHandler(source));
+                            messageBodyPart.setFileName(fileName);
+                            multipart.addBodyPart(messageBodyPart);
+                        }
+                    }
+
+                    message.setContent(multipart);
+
+                    Transport.send(message);
+
+                    promise.resolve(true);
+
+                } catch (MessagingException e) {
+                    promise.reject(E_SENDING_FAILED_ERROR, e.getMessage());
                 }
-
-                message.setContent(multipart);
-
-                Transport.send(message);
-
-                promise.resolve(true);
-
-            } catch (MessagingException e) {
-                promise.reject(E_SENDING_FAILED_ERROR, e.getMessage());
             }
         }).start();
     }
