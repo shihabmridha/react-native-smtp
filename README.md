@@ -61,7 +61,7 @@ const attachments = [
 EmailSender.send(
   {
     from: 'from@email.com',
-    to: 'to@email.com',
+    to: 'to@email.com,another@email.com',
     subject: 'The subject',
     body: '<h3> Cool Body </h3>';
   },
