@@ -1,7 +1,7 @@
 {
   "name": "@shihabmridha/react-native-smtp",
   "title": "React Native Simple Smtp Mail Sender",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "This module will allow you to send email via SMTP.",
   "main": "index.js",
   "scripts": {

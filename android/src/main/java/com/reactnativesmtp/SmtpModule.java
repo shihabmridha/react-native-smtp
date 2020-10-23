@@ -139,8 +139,8 @@ public class SmtpModule extends ReactContextBaseJavaModule {
                     message.setFrom(new InternetAddress(from));
 
                     // Set reply-to
-                    if (mailData.hasKey('replyTo')) {
-                        message.setReplyTo(new InternetAddress(mailData.hasKey('replyTo')));
+                    if (mailData.hasKey("replyTo")) {
+                        message.setReplyTo(new InternetAddress(mailData.hasKey("replyTo")));
                     }
                     
                     message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
