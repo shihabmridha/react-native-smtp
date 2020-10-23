@@ -66,6 +66,7 @@ EmailSender.send(
     to: 'to@email.com,another@email.com',
     subject: 'The subject',
     body: '<h3> Cool Body </h3>';
+    replyTo: 'reply@email.com' // Optional
   },
   attachments, // This second parameter is mandatory. You can send an empty array.
 );
